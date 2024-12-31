@@ -1,36 +1,19 @@
 import streamlit as st
-import subprocess
-import os
-import ctypes
 import psutil
 import time
 import base64
 
-def is_admin():
-    # Check if we're running on Streamlit Cloud
-    if os.environ.get('STREAMLIT_SERVER_HEADLESS') == 'true':
-        return True  # Assume we have necessary permissions on Streamlit Cloud
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
-        return False
-
-if not is_admin():
-    st.error("This application requires administrator privileges. Please run it as an administrator.")
-    st.stop()
+# Remove the is_admin() function and check
 
 def run_command(command):
-    try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        return result.stdout
-    except subprocess.CalledProcessError as e:
-        st.error(f"Error executing command: {e}")
-        return None
+    # Simulate command execution
+    st.info(f"Simulated command: {command}")
+    return "Command executed successfully"
 
 # Set page config
 st.set_page_config(page_title="NyroFX Free Tweaking Utility", page_icon="🛠️", layout="wide")
 
-# Custom CSS to style the logo and title
+# Custom CSS (unchanged)
 st.markdown("""
     <style>
     body {
@@ -77,18 +60,18 @@ st.markdown("""
 # Logo and Title
 st.markdown("""
     <div class="logo-title-container">
-        <img src="data:image/gif;base64,{}" class="logo-image">
+        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/nyrofx_logo-SA3FeqpXgFettobgQ9vxRXLQaQflGs.gif" class="logo-image">
         <span class="app-title">NyroFX Free Tweaking Utility</span>
     </div>
-""".format(base64.b64encode(open("nyrofx_logo.gif", "rb").read()).decode()), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 st.write("Optimize your system performance with ease")
 
 # Sidebar
 st.sidebar.title("About")
-st.sidebar.info("NyroFX Free Tweaking Utility is designed to enhance your system's performance. Use with caution and always create a restore point before making changes.")
+st.sidebar.info("NyroFX Free Tweaking Utility is designed to enhance your system's performance. This cloud version provides recommendations and simulations of tweaks.")
 
-# Discord button with logo
+# Discord button with logo (unchanged)
 discord_html = """
 <div style="display: flex; align-items: center;">
     <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a69f118df70ad7828d4_icon_clyde_blurple_RGB.svg" alt="Discord logo" style="width: 24px; height: 24px; margin-right: 10px;">
@@ -108,15 +91,14 @@ with tab1:
     with col1:
         st.subheader("System Restore")
         if st.button("Create System Restore Point"):
-            run_command('powershell.exe -Command "Checkpoint-Computer -Description \'NyroFX Optimizer Restore Point\' -RestorePointType \'MODIFY_SETTINGS\'"')
-            st.success("Restore point created successfully.")
+            st.info("In a local environment, this would create a system restore point.")
+            st.success("Restore point creation simulated successfully.")
     
     with col2:
         st.subheader("Visual Effects")
         if st.button("Optimize Visual Effects"):
-            run_command('reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects" /v VisualFXSetting /t REG_DWORD /d 2 /f')
-            run_command('rundll32.exe advapi32.dll,ProcessIdleTasks')
-            st.success("Visual effects optimized for performance.")
+            st.info("In a local environment, this would optimize visual effects for performance.")
+            st.success("Visual effects optimization simulated successfully.")
     
     st.subheader("System Services")
     col3, col4, col5 = st.columns(3)
@@ -124,48 +106,28 @@ with tab1:
     with col3:
         prefetch_state = st.radio("Prefetch", ("Enable", "Disable"), key="prefetch")
         if st.button("Apply Prefetch Setting"):
-            value = 0 if prefetch_state == "Disable" else 1
-            run_command(f'reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters" /v EnablePrefetcher /t REG_DWORD /d {value} /f')
-            st.success(f"Prefetch {prefetch_state.lower()}d successfully.")
+            st.info(f"In a local environment, this would {prefetch_state.lower()} Prefetch.")
+            st.success(f"Prefetch {prefetch_state.lower()} simulation successful.")
     
     with col4:
         windows_update_state = st.radio("Windows Update", ("Enable", "Disable"), key="windows_update")
         if st.button("Apply Windows Update Setting"):
-            if windows_update_state == "Disable":
-                run_command('sc stop wuauserv')
-                run_command('sc config wuauserv start= disabled')
-                st.success("Windows Update service stopped and disabled.")
-            else:
-                run_command('sc config wuauserv start= auto')
-                run_command('sc start wuauserv')
-                st.success("Windows Update service enabled and started.")
+            st.info(f"In a local environment, this would {windows_update_state.lower()} Windows Update.")
+            st.success(f"Windows Update {windows_update_state.lower()} simulation successful.")
     
     with col5:
         superfetch_state = st.radio("Superfetch", ("Enable", "Disable"), key="superfetch")
         if st.button("Apply Superfetch Setting"):
-            if superfetch_state == "Disable":
-                run_command('sc stop SysMain')
-                run_command('sc config SysMain start= disabled')
-                st.success("Superfetch (SysMain) disabled.")
-            else:
-                run_command('sc config SysMain start= auto')
-                run_command('sc start SysMain')
-                st.success("Superfetch (SysMain) enabled and started.")
+            st.info(f"In a local environment, this would {superfetch_state.lower()} Superfetch.")
+            st.success(f"Superfetch {superfetch_state.lower()} simulation successful.")
     
     st.subheader("Power Management")
-    power_plans = {
-        "Balanced": "381b4222-f694-41f0-9685-ff5bb260df2e",
-        "High performance": "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c",
-        "Power saver": "a1841308-3541-4fab-bc81-f71556f20b4a",
-        "Ultimate Performance": "e9a42b02-d5df-448d-aa00-03f14749eb61"
-    }
-    selected_plan = st.selectbox("Select Power Plan", list(power_plans.keys()), index=1)
+    power_plans = ["Balanced", "High performance", "Power saver", "Ultimate Performance"]
+    selected_plan = st.selectbox("Select Power Plan", power_plans, index=1)
     st.write("💡 High performance or Ultimate Performance is recommended for optimal system performance.")
     if st.button("Apply Power Plan"):
-        if selected_plan == "Ultimate Performance":
-            run_command('powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61')
-        run_command(f'powercfg /setactive {power_plans[selected_plan]}')
-        st.success(f"{selected_plan} power plan applied successfully.")
+        st.info(f"In a local environment, this would apply the {selected_plan} power plan.")
+        st.success(f"{selected_plan} power plan simulation applied successfully.")
 
 with tab2:
     st.header("Gaming Tweaks")
@@ -174,73 +136,46 @@ with tab2:
     game_dvr_state = st.radio("Game DVR", ("Enable", "Disable"), key="game_dvr")
     st.warning("Disabling Game DVR may affect Xbox services and game recording capabilities.")
     if st.button("Apply Game DVR Setting"):
-        value = 0 if game_dvr_state == "Disable" else 1
-        run_command(f'reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR" /v AllowGameDVR /t REG_DWORD /d {value} /f')
-        run_command(f'reg add "HKCU\\System\\GameConfigStore" /v GameDVR_Enabled /t REG_DWORD /d {value} /f')
-        st.success(f"Game DVR {game_dvr_state.lower()}d successfully.")
+        st.info(f"In a local environment, this would {game_dvr_state.lower()} Game DVR.")
+        st.success(f"Game DVR {game_dvr_state.lower()} simulation successful.")
     
     st.subheader("Game Priority")
     game = st.selectbox("Select a game to prioritize", ["Fortnite", "Call of Duty", "FiveM", "Valorant"])
     if st.button("Set Game Priority"):
-        run_command(f'wmic process where name="{game}.exe" CALL setpriority "high priority"')
-        st.success(f"Priority set for {game}")
+        st.info(f"In a local environment, this would set high priority for {game}.")
+        st.success(f"Priority simulation set for {game}")
     
     st.subheader("GPU Optimization")
     gpu_type = st.radio("Select GPU Type", ["NVIDIA", "AMD"], key="gpu_type")
     if st.button("Optimize GPU"):
-        if gpu_type == "NVIDIA":
-            run_command('reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000" /v "PerfLevelSrc" /t REG_DWORD /d "2222" /f')
-            run_command('reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000" /v "PowerMizerEnable" /t REG_DWORD /d "1" /f')
-            run_command('reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000" /v "PowerMizerLevel" /t REG_DWORD /d "1" /f')
-            run_command('reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000" /v "PowerMizerLevelAC" /t REG_DWORD /d "1" /f')
-        elif gpu_type == "AMD":
-            run_command('reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000" /v "KMD_EnableComputePreemption" /t REG_DWORD /d "0" /f')
-            run_command('reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0000" /v "DisableDrmdmaPowerGating" /t REG_DWORD /d "1" /f')
-        st.success(f"{gpu_type} GPU optimized successfully.")
+        st.info(f"In a local environment, this would optimize {gpu_type} GPU settings.")
+        st.success(f"{gpu_type} GPU optimization simulation successful.")
 
 with tab3:
     st.header("Network Tweaks")
     
     if st.button("Optimize Network Settings"):
-        run_command('netsh int tcp set global autotuninglevel=disabled')
-        run_command('netsh int tcp set global chimney=disabled')
-        run_command('netsh int tcp set global rss=disabled')
-        run_command('netsh int tcp set global timestamps=disabled')
-        run_command('ipconfig /flushdns')
-        st.success("Network optimized successfully.")
+        st.info("In a local environment, this would optimize various network settings.")
+        st.success("Network optimization simulation successful.")
     
     if st.button("Clear DNS Cache"):
-        result = run_command('ipconfig /flushdns')
-        if result:
-            st.success("DNS cache cleared successfully.")
-        else:
-            st.error("Failed to clear DNS cache. Please try running the utility as administrator.")
+        st.info("In a local environment, this would clear the DNS cache.")
+        st.success("DNS cache clear simulation successful.")
 
 with tab4:
     st.header("System Cleanup")
     
     if st.button("Clean Temporary Files"):
-        temp_folders = [os.environ['TEMP'], r'C:\Windows\Temp']
-        files_removed = 0
-        for folder in temp_folders:
-            for root, dirs, files in os.walk(folder):
-                for file in files:
-                    try:
-                        file_path = os.path.join(root, file)
-                        if os.path.isfile(file_path):
-                            os.unlink(file_path)
-                            files_removed += 1
-                    except Exception as e:
-                        st.warning(f"Could not remove {file_path}: {e}")
-        st.success(f"Temporary files cleaned successfully. {files_removed} files removed.")
+        st.info("In a local environment, this would clean temporary files from various locations.")
+        st.success("Temporary files cleanup simulation successful.")
 
 with tab5:
     st.header("Advanced Tweaks")
     
     st.subheader("RAM Optimization")
     if st.button("Optimize RAM"):
-        run_command('reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control" /v "SvcHostSplitThresholdInKB" /t REG_DWORD /d "68764420" /f')
-        st.success("RAM optimized successfully.")
+        st.info("In a local environment, this would optimize RAM usage settings.")
+        st.success("RAM optimization simulation successful.")
     
     st.subheader("System Information")
     show_info = st.button("Show System Info")
@@ -268,4 +203,6 @@ with tab5:
 
         placeholder.empty()
         stop_info.empty()
+
+st.info("Note: This is a cloud version of the utility. It simulates tweaks and provides recommendations. To apply actual changes, please run the desktop version with administrator privileges.")
 
