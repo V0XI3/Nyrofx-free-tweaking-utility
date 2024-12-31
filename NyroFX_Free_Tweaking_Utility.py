@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import subprocess
 import os
 import ctypes
@@ -7,6 +7,9 @@ import time
 import base64
 
 def is_admin():
+    # Check if we're running on Streamlit Cloud
+    if os.environ.get('STREAMLIT_SERVER_HEADLESS') == 'true':
+        return True  # Assume we have necessary permissions on Streamlit Cloud
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
@@ -30,46 +33,46 @@ st.set_page_config(page_title="NyroFX Free Tweaking Utility", page_icon="🛠️
 # Custom CSS to style the logo and title
 st.markdown("""
     <style>
-body {
-    color: #262730;
-}
-.logo-title-container {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 10px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-}
-.logo-image {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-}
-.app-title {
-    font-size: 36px;
-    font-weight: bold;
-    color: #FF5733; /* A bright orange color that should be visible on both light and dark backgrounds */
-}
-.stButton > button {
-    border-radius: 10px;
-}
-.stTextInput > div > div > input {
-    border-radius: 10px;
-}
-.stSelectbox > div > div > select {
-    border-radius: 10px;
-}
-.custom-warning {
-    background-color: rgba(255, 87, 51, 0.7);
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-</style>
-""", unsafe_allow_html=True)
+    body {
+        color: #262730;
+    }
+    .logo-title-container {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+    .logo-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+    }
+    .app-title {
+        font-size: 36px;
+        font-weight: bold;
+        color: #FF5733;
+    }
+    .stButton > button {
+        border-radius: 10px;
+    }
+    .stTextInput > div > div > input {
+        border-radius: 10px;
+    }
+    .stSelectbox > div > div > select {
+        border-radius: 10px;
+    }
+    .custom-warning {
+        background-color: rgba(255, 87, 51, 0.7);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # Logo and Title
 st.markdown("""
@@ -93,7 +96,6 @@ discord_html = """
 </div>
 """
 st.sidebar.markdown(discord_html, unsafe_allow_html=True)
-
 
 # Main content
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["System Tweaks", "Gaming Tweaks", "Network Tweaks", "Cleanup", "Advanced Tweaks"])
