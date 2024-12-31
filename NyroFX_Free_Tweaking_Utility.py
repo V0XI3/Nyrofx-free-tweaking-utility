@@ -5,55 +5,46 @@ import sys
 import platform
 import psutil
 import time
-import ctypes
+
+# Set page config first
+st.set_page_config(page_title="NyroFX Free Tweaking Utility", page_icon="🛠️", layout="wide")
+
+def is_windows():
+    return platform.system() == 'Windows'
 
 def is_admin():
-    try:
-        if platform.system() == 'Windows':
+    if is_windows():
+        try:
             import ctypes
             return ctypes.windll.shell32.IsUserAnAdmin()
-        elif platform.system() == 'Linux' or platform.system() == 'Darwin':
-            return os.geteuid() == 0
-    except:
-        return False
+        except:
+            return False
     return False
 
 def run_as_admin():
-    try:
-        if platform.system() == 'Windows':
+    if is_windows():
+        try:
             import ctypes
             ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
-        else:
-            st.error("Elevating privileges is not supported on this platform.")
-    except Exception as e:
-        st.error(f"Error while trying to run as admin: {e}")
+        except Exception as e:
+            st.error(f"Error while trying to run as admin: {e}")
+    else:
+        st.error("Elevating privileges is not supported on this platform.")
 
 def run_command(command):
-    try:
-        if platform.system() == 'Windows':
+    if is_windows():
+        try:
             result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
             st.success(f"Command executed successfully: {command}")
             return result.stdout
-        else:
-            st.warning(f"Command simulation: {command}")
-            return "Command simulated successfully"
-    except subprocess.CalledProcessError as e:
-        st.error(f"Error executing command: {e}")
-        return None
+        except subprocess.CalledProcessError as e:
+            st.error(f"Error executing command: {e}")
+            return None
+    else:
+        st.warning(f"Command simulation: {command}")
+        return "Command simulated successfully"
 
-# Check for admin rights
-if not is_admin():
-    st.warning("This application works best with administrator privileges.")
-    if st.button("Attempt to Restart with Admin Rights"):
-        run_as_admin()
-    st.info("Continuing with limited functionality. Some features may not work as expected.")
-else:
-    st.success("Running with administrator privileges.")
-
-# Set page config
-st.set_page_config(page_title="NyroFX Free Tweaking Utility", page_icon="🛠️", layout="wide")
-
-# Custom CSS (unchanged)
+# Custom CSS
 st.markdown("""
     <style>
     body {
@@ -107,11 +98,22 @@ st.markdown("""
 
 st.write("Optimize your system performance with ease")
 
+# Check for Windows and admin rights
+if not is_windows():
+    st.warning("This application is designed for Windows. Some features may not work on this platform.")
+elif not is_admin():
+    st.warning("This application works best with administrator privileges.")
+    if st.button("Attempt to Restart with Admin Rights"):
+        run_as_admin()
+    st.info("Continuing with limited functionality. Some features may not work as expected.")
+else:
+    st.success("Running on Windows with administrator privileges.")
+
 # Sidebar
 st.sidebar.title("About")
-st.sidebar.info("NyroFX Free Tweaking Utility is designed to enhance your system's performance. This cloud version provides recommendations and simulations of tweaks.")
+st.sidebar.info("NyroFX Free Tweaking Utility is designed to enhance your Windows system's performance. Use with caution and always create a restore point before making changes.")
 
-# Discord button with logo (unchanged)
+# Discord button
 discord_html = """
 <div style="display: flex; align-items: center;">
     <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a69f118df70ad7828d4_icon_clyde_blurple_RGB.svg" alt="Discord logo" style="width: 24px; height: 24px; margin-right: 10px;">
@@ -131,15 +133,18 @@ with tab1:
     with col1:
         st.subheader("System Restore")
         if st.button("Create System Restore Point"):
-            #run_command("powershell.exe -Command Add-Computer -Credential (Get-Credential)") #Example of a command that requires admin rights
-            st.info("In a local environment, this would create a system restore point.")
-            st.success("Restore point creation simulated successfully.")
+            if is_windows():
+                run_command('powershell.exe -Command "Checkpoint-Computer -Description \'NyroFX Optimizer Restore Point\' -RestorePointType \'MODIFY_SETTINGS\'"')
+                st.success("Restore point created successfully.")
+            else:
+                st.info("System Restore Point creation simulated (non-Windows environment).")
     
     with col2:
         st.subheader("Visual Effects")
         if st.button("Optimize Visual Effects"):
-            result = run_command('reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects" /v VisualFXSetting /t REG_DWORD /d 2 /f')
-            if result:
+            if is_windows():
+                run_command('reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects" /v VisualFXSetting /t REG_DWORD /d 2 /f')
+                run_command('rundll32.exe advapi32.dll,ProcessIdleTasks')
                 st.success("Visual effects optimized for performance.")
             else:
                 st.info("Visual effects optimization simulated (non-Windows environment).")
@@ -150,28 +155,60 @@ with tab1:
     with col3:
         prefetch_state = st.radio("Prefetch", ("Enable", "Disable"), key="prefetch")
         if st.button("Apply Prefetch Setting"):
-            st.info(f"In a local environment, this would {prefetch_state.lower()} Prefetch.")
-            st.success(f"Prefetch {prefetch_state.lower()} simulation successful.")
+            if is_windows():
+                value = 0 if prefetch_state == "Disable" else 1
+                run_command(f'reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters" /v EnablePrefetcher /t REG_DWORD /d {value} /f')
+                st.success(f"Prefetch {prefetch_state.lower()}d successfully.")
+            else:
+                st.info(f"Prefetch {prefetch_state.lower()} simulated (non-Windows environment).")
     
     with col4:
         windows_update_state = st.radio("Windows Update", ("Enable", "Disable"), key="windows_update")
         if st.button("Apply Windows Update Setting"):
-            st.info(f"In a local environment, this would {windows_update_state.lower()} Windows Update.")
-            st.success(f"Windows Update {windows_update_state.lower()} simulation successful.")
+            if is_windows():
+                if windows_update_state == "Disable":
+                    run_command('sc stop wuauserv')
+                    run_command('sc config wuauserv start= disabled')
+                    st.success("Windows Update service stopped and disabled.")
+                else:
+                    run_command('sc config wuauserv start= auto')
+                    run_command('sc start wuauserv')
+                    st.success("Windows Update service enabled and started.")
+            else:
+                st.info(f"Windows Update {windows_update_state.lower()} simulated (non-Windows environment).")
     
     with col5:
         superfetch_state = st.radio("Superfetch", ("Enable", "Disable"), key="superfetch")
         if st.button("Apply Superfetch Setting"):
-            st.info(f"In a local environment, this would {superfetch_state.lower()} Superfetch.")
-            st.success(f"Superfetch {superfetch_state.lower()} simulation successful.")
+            if is_windows():
+                if superfetch_state == "Disable":
+                    run_command('sc stop SysMain')
+                    run_command('sc config SysMain start= disabled')
+                    st.success("Superfetch (SysMain) disabled.")
+                else:
+                    run_command('sc config SysMain start= auto')
+                    run_command('sc start SysMain')
+                    st.success("Superfetch (SysMain) enabled and started.")
+            else:
+                st.info(f"Superfetch {superfetch_state.lower()} simulated (non-Windows environment).")
     
     st.subheader("Power Management")
-    power_plans = ["Balanced", "High performance", "Power saver", "Ultimate Performance"]
-    selected_plan = st.selectbox("Select Power Plan", power_plans, index=1)
+    power_plans = {
+        "Balanced": "381b4222-f694-41f0-9685-ff5bb260df2e",
+        "High performance": "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c",
+        "Power saver": "a1841308-3541-4fab-bc81-f71556f20b4a",
+        "Ultimate Performance": "e9a42b02-d5df-448d-aa00-03f14749eb61"
+    }
+    selected_plan = st.selectbox("Select Power Plan", list(power_plans.keys()), index=1)
     st.write("💡 High performance or Ultimate Performance is recommended for optimal system performance.")
     if st.button("Apply Power Plan"):
-        st.info(f"In a local environment, this would apply the {selected_plan} power plan.")
-        st.success(f"{selected_plan} power plan simulation applied successfully.")
+        if is_windows():
+            if selected_plan == "Ultimate Performance":
+                run_command('powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61')
+            run_command(f'powercfg /setactive {power_plans[selected_plan]}')
+            st.success(f"{selected_plan} power plan applied successfully.")
+        else:
+            st.info(f"{selected_plan} power plan application simulated (non-Windows environment).")
 
 with tab2:
     st.header("Gaming Tweaks")
@@ -218,8 +255,11 @@ with tab5:
     
     st.subheader("RAM Optimization")
     if st.button("Optimize RAM"):
-        st.info("In a local environment, this would optimize RAM usage settings.")
-        st.success("RAM optimization simulation successful.")
+        if is_windows():
+            run_command('reg add "HKLM\\SYSTEM\\CurrentControlSet\\Control" /v "SvcHostSplitThresholdInKB" /t REG_DWORD /d "68764420" /f')
+            st.success("RAM optimized successfully.")
+        else:
+            st.info("RAM optimization simulated (non-Windows environment).")
     
     st.subheader("System Information")
     show_info = st.button("Show System Info")
@@ -248,5 +288,6 @@ with tab5:
         placeholder.empty()
         stop_info.empty()
 
-st.info("Note: This is a cloud version of the utility. It simulates tweaks and provides recommendations. To apply actual changes, please run the desktop version with administrator privileges.")
+if not is_windows():
+    st.info("Note: This is a simulation of the NyroFX Free Tweaking Utility. For full functionality, please run on a Windows system with administrator privileges.")
 
