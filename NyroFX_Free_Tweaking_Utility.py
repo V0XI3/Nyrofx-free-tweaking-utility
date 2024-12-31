@@ -1,14 +1,34 @@
 import streamlit as st
+import subprocess
+import os
+import ctypes
 import psutil
 import time
-import base64
+import sys
 
-# Remove the is_admin() function and check
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+def run_as_admin():
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
 
 def run_command(command):
-    # Simulate command execution
-    st.info(f"Simulated command: {command}")
-    return "Command executed successfully"
+    try:
+        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+        st.success(f"Command executed successfully: {command}")
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        st.error(f"Error executing command: {e}")
+        return None
+
+if not is_admin():
+    st.error("This application requires administrator privileges. Please run it as an administrator.")
+    if st.button("Restart with Admin Rights"):
+        run_as_admin()
+    st.stop()
 
 # Set page config
 st.set_page_config(page_title="NyroFX Free Tweaking Utility", page_icon="🛠️", layout="wide")
@@ -91,14 +111,16 @@ with tab1:
     with col1:
         st.subheader("System Restore")
         if st.button("Create System Restore Point"):
+            #run_command("powershell.exe -Command Add-Computer -Credential (Get-Credential)") #Example of a command that requires admin rights
             st.info("In a local environment, this would create a system restore point.")
             st.success("Restore point creation simulated successfully.")
     
     with col2:
         st.subheader("Visual Effects")
         if st.button("Optimize Visual Effects"):
-            st.info("In a local environment, this would optimize visual effects for performance.")
-            st.success("Visual effects optimization simulated successfully.")
+            run_command('reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects" /v VisualFXSetting /t REG_DWORD /d 2 /f')
+            run_command('rundll32.exe advapi32.dll,ProcessIdleTasks')
+            st.success("Visual effects optimized for performance.")
     
     st.subheader("System Services")
     col3, col4, col5 = st.columns(3)
