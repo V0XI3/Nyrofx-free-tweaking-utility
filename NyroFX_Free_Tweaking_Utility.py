@@ -1,34 +1,54 @@
 import streamlit as st
 import subprocess
 import os
-import ctypes
+import sys
+import platform
 import psutil
 import time
-import sys
+import ctypes
 
 def is_admin():
     try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
+        if platform.system() == 'Windows':
+            import ctypes
+            return ctypes.windll.shell32.IsUserAnAdmin()
+        elif platform.system() == 'Linux' or platform.system() == 'Darwin':
+            return os.geteuid() == 0
     except:
         return False
+    return False
 
 def run_as_admin():
-    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+    try:
+        if platform.system() == 'Windows':
+            import ctypes
+            ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+        else:
+            st.error("Elevating privileges is not supported on this platform.")
+    except Exception as e:
+        st.error(f"Error while trying to run as admin: {e}")
 
 def run_command(command):
     try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        st.success(f"Command executed successfully: {command}")
-        return result.stdout
+        if platform.system() == 'Windows':
+            result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+            st.success(f"Command executed successfully: {command}")
+            return result.stdout
+        else:
+            st.warning(f"Command simulation: {command}")
+            return "Command simulated successfully"
     except subprocess.CalledProcessError as e:
         st.error(f"Error executing command: {e}")
         return None
 
+# Check for admin rights
 if not is_admin():
-    st.error("This application requires administrator privileges. Please run it as an administrator.")
-    if st.button("Restart with Admin Rights"):
+    st.warning("This application works best with administrator privileges.")
+    if st.button("Attempt to Restart with Admin Rights"):
         run_as_admin()
-    st.stop()
+    st.info("Continuing with limited functionality. Some features may not work as expected.")
+else:
+    st.success("Running with administrator privileges.")
 
 # Set page config
 st.set_page_config(page_title="NyroFX Free Tweaking Utility", page_icon="🛠️", layout="wide")
@@ -118,9 +138,11 @@ with tab1:
     with col2:
         st.subheader("Visual Effects")
         if st.button("Optimize Visual Effects"):
-            run_command('reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects" /v VisualFXSetting /t REG_DWORD /d 2 /f')
-            run_command('rundll32.exe advapi32.dll,ProcessIdleTasks')
-            st.success("Visual effects optimized for performance.")
+            result = run_command('reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects" /v VisualFXSetting /t REG_DWORD /d 2 /f')
+            if result:
+                st.success("Visual effects optimized for performance.")
+            else:
+                st.info("Visual effects optimization simulated (non-Windows environment).")
     
     st.subheader("System Services")
     col3, col4, col5 = st.columns(3)
